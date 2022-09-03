@@ -12,12 +12,12 @@ import java.io.PrintWriter;
 import java.net.URL;
 
 @WebServlet(name = "TablesServlet", value = "/tables")
-public class DBServlet extends HttpServlet {
+public class TablesServlet extends HttpServlet {
     URL resourceURL;
     String[] directoryContent;
 
     public void init() {
-        resourceURL = DBServlet.class.getClassLoader().getResource("dbs/");
+        resourceURL = TablesServlet.class.getClassLoader().getResource("dbs/");
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

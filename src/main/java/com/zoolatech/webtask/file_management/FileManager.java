@@ -1,22 +1,23 @@
 package com.zoolatech.webtask.file_management;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.io.*;
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class FileManager {
 
+    private final RequestParser parser = new RequestParser();
     private final Pattern pattern = Pattern.compile("/table/");
 
-    public String readFile(String fileName) {
+    public String readFile(String requestUrl) {
         StringBuilder stringBuilder = new StringBuilder();
-        fileName = clearFileName(fileName);
+        String fileName = getFileName(requestUrl);
 
         try (
                 InputStream inputStream = this.getClass().getResourceAsStream("/dbs/" + fileName);
@@ -31,30 +32,11 @@ public class FileManager {
         return stringBuilder.toString();
     }
 
-    private String clearFileName(String name) {
+    private String getFileName(String name) {
         return pattern.matcher(name).replaceAll("");
     }
 
-    public static String getBody(HttpServletRequest request) {
-        String stringBuilder = "";
-        try (InputStream inputStream = request.getInputStream();
-             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
-            char[] charBuffer = new char[128];
-            int bytesRead;
-            while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
-                stringBuilder = stringBuilder.concat(String.valueOf(charBuffer, 0, bytesRead));
-            }
-        } catch (IOException ex) {
-            System.err.println("Cannot read body");
-        }
-        return stringBuilder;
-    }
-
-    public String convertJson(HttpServletRequest request) throws IOException {
-        String json = getBody(request);
-        ObjectMapper mapper = new ObjectMapper();
-        return (String) mapper.readValue(json, new TypeReference<HashMap<String, Object>>() {
-                })
-                .get("content");
+    public String convertJson(HttpServletRequest request) {
+        return parser.convertJson(request);
     }
 }

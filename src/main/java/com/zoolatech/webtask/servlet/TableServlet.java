@@ -46,8 +46,10 @@ public class TableServlet extends HttpServlet {
 
         if (new File(dbPath + tableName).createNewFile()) {
             System.out.println("File created: " + tableName);
+            response.setStatus(HttpServletResponse.SC_CREATED);
         } else {
             System.out.println("File already exists.");
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
         }
         response.sendRedirect("/tables");
     }
@@ -59,6 +61,7 @@ public class TableServlet extends HttpServlet {
 
         if (!file.exists()) {
             System.out.println("User trying to update non-existent file");
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         } else {
             try (FileWriter fileWriter = new FileWriter(dbPath + tableName)) {
                 fileWriter.write(manager.convertJson(request));
