@@ -1,29 +1,20 @@
 package com.zoolatech.webtask.servlet;
 
-import com.zoolatech.webtask.file_management.FileManager;
+import com.zoolatech.webtask.file.FileManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet(value = "/table/*")
 public class TableServlet extends HttpServlet {
 
-    private FileManager manager;
-    private String dbPath;
+    private final FileManager manager = new FileManager();
     private String tableName;
-
-    @Override
-    public void init() {
-        manager = new FileManager();
-        dbPath = this.getClass().getClassLoader().getResource("dbs").getPath();
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -44,42 +35,36 @@ public class TableServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         tableName = request.getPathInfo();
 
-        if (new File(dbPath + tableName).createNewFile()) {
+        if (manager.createFile(tableName)) {
             System.out.println("File created: " + tableName);
             response.setStatus(HttpServletResponse.SC_CREATED);
+            response.sendRedirect("/tables");
         } else {
             System.out.println("File already exists.");
             response.setStatus(HttpServletResponse.SC_CONFLICT);
         }
-        response.sendRedirect("/tables");
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        tableName = request.getPathInfo();
-        File file = new File(dbPath + tableName);
-
-        if (!file.exists()) {
+        if (manager.updateFile(request.getPathInfo(), request)) {
+            response.sendRedirect("/table/" + tableName);
+        } else {
             System.out.println("User trying to update non-existent file");
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        } else {
-            try (FileWriter fileWriter = new FileWriter(dbPath + tableName)) {
-                fileWriter.write(manager.convertJson(request));
-            }
-            response.sendRedirect("/table/" + tableName);
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         tableName = request.getPathInfo();
-        File file = new File(dbPath + tableName);
 
-        if (file.delete()) {
-            System.out.println("File '" + file.getName() + "' deleted");
+        if (manager.deleteFile(tableName)) {
+            System.out.println("File '" + tableName + "' deleted");
             response.sendRedirect("/tables");
         } else {
-            System.out.println("File '" + file.getName() + "' doesn't exist");
+            System.out.println("File '" + tableName + "' doesn't exist");
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 }

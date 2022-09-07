@@ -1,4 +1,4 @@
-package com.zoolatech.webtask.file_management;
+package com.zoolatech.webtask.file;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
